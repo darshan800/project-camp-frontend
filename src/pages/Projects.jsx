@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
-
+import { useNavigate } from "react-router-dom"; 
 function Projects() {
+   const navigate = useNavigate();
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
+    <div className="min-h-screen bg-gray-700 p-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -60,7 +61,7 @@ function Projects() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+          className="bg-green-500 hover:bg-green-700 text-white text-1xl font-semibold px-4 py-2 rounded-lg transition-colors"
         >
           + New Project
         </button>
@@ -86,6 +87,7 @@ function Projects() {
          {projects.map((item) => (
   <div
     key={item.projects._id}
+    onClick={() => navigate(`/projects/${item.projects._id}`)}
     className="bg-gray-800 rounded-lg p-6 cursor-pointer border border-gray-700 hover:border-blue-500 transition-all"
   >
     <h2 className="text-white font-semibold text-lg mb-2">
