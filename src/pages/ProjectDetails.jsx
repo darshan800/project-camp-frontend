@@ -27,10 +27,15 @@ function ProjectDetails() {
 
   const [memberRole, setMemberRole] = useState("member");
 
+    const [notes, setNotes] = useState([]);
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [newNote, setNewNote] = useState({ content: "" });
+    const [creatingNote, setCreatingNote] = useState(false);
   useEffect(() => {
     fetchProjectDetails();
     fetchTasks();
     fetchMembers();
+    fetchNotes();
   }, []);
 
   const fetchProjectDetails = async () => {
@@ -61,6 +66,15 @@ function ProjectDetails() {
     setMembers(response.data.data);
   } catch (err) {
     console.error("Failed to fetch members", err);
+  }
+};
+
+  const fetchNotes = async () => {
+  try {
+    const response = await api.get(`/notes/${projectId}`);
+    setNotes(response.data.data);
+  } catch (err) {
+    console.error("Failed to fetch notes", err);
   }
 };
 
@@ -102,6 +116,21 @@ function ProjectDetails() {
     console.error("Failed to add member", err);
   } finally {
     setAddingMember(false);
+  }
+};
+
+  const handleCreateNote = async () => {
+  if (!newNote.content.trim()) return;
+  setCreatingNote(true);
+  try {
+    await api.post(`/notes/${projectId}`, newNote);
+    setShowNoteModal(false);
+    setNewNote({ content: "" });
+    fetchNotes();
+  } catch (err) {
+    console.error("Failed to create note", err);
+  } finally {
+    setCreatingNote(false);
   }
 };
 
@@ -225,9 +254,39 @@ function ProjectDetails() {
       )}
 
       {/* Notes Tab */}
-      {activeTab === "notes" && (
-        <div className="text-center py-20">
-          <p className="text-gray-500">Notes coming soon</p>
+            {activeTab === "notes" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-gray-900 font-semibold text-lg">Notes</h2>
+            {currentUserRole === "admin" && (
+              <button
+                onClick={() => setShowNoteModal(true)}
+                className="bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                + Add Note
+              </button>
+            )}
+          </div>
+
+          {notes.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-500">No notes yet</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {notes.map((note) => (
+                <div
+                  key={note._id}
+                  className="bg-white rounded-lg p-4 border border-gray-200"
+                >
+                  <p className="text-gray-900">{note.content}</p>
+                  <p className="text-gray-400 text-xs mt-2">
+                    By {note.createdBy?.username} • {new Date(note.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
       {/* Task Modal */}
@@ -337,6 +396,45 @@ function ProjectDetails() {
           </div>
         </div>
       )}
+
+      {showNoteModal && (
+  <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg border border-gray-200">
+      <h2 className="text-gray-900 text-xl font-bold mb-4">Create Note</h2>
+
+      <div className="flex flex-col gap-4">
+        <div>
+          <label className="text-gray-700 text-sm font-medium mb-1 block">
+            Content
+          </label>
+          <textarea
+            value={newNote.content}
+            onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+            placeholder="Write your note here..."
+            rows={4}
+            className="w-full border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm resize-none"
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowNoteModal(false)}
+            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2.5 rounded-lg transition-colors text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCreateNote}
+            disabled={creatingNote}
+            className="flex-1 bg-gray-900 hover:bg-gray-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm disabled:opacity-50"
+          >
+            {creatingNote ? "Creating..." : "Create"}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
