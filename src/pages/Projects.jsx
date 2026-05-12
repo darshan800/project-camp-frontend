@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom"; 
 function Projects() {
    const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user,setUser } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,6 +43,19 @@ function Projects() {
     }
   };
 
+  // Optional: Add a logout button in the header
+  const handleLogout = async () => {
+  try {
+    await api.post("/auth/logout");
+  } catch (err) {
+    console.error("Logout failed", err);
+  } finally {
+    localStorage.removeItem("accessToken");
+    setUser(null);
+    navigate("/login");
+  }
+};
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -59,12 +72,20 @@ function Projects() {
           <h1 className="text-gray-900 text-3xl font-bold">Projects</h1>
           <p className="text-gray-500 mt-1">Welcome back, {user?.username}!</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-green-500 hover:bg-green-700 text-gray-900 text-1xl font-semibold px-4 py-2 rounded-lg transition-colors"
-        >
-          + New Project
-        </button>
+      <div className="flex items-center gap-3">
+          <button
+            onClick={handleLogout}
+            className="border border-gray-200 text-white bg-violet-900 hover:bg-violet-700  text-sm text-1xl font-bold  px-4 py-2 rounded-lg transition-colors"
+          >
+            Logout
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-green-500 hover:bg-green-600 text-white text-sm text-1xl font-bold px-4 py-2 rounded-lg transition-colors"
+          >
+            + New Project
+          </button>
+      </div>
       </div>
 
       {/* Error */}

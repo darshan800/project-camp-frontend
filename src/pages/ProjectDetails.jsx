@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
+
 function ProjectDetails() {
    const { user } = useAuth();
   const { projectId } = useParams();
@@ -31,6 +32,9 @@ function ProjectDetails() {
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [newNote, setNewNote] = useState({ content: "" });
     const [creatingNote, setCreatingNote] = useState(false);
+
+    
+
   useEffect(() => {
     fetchProjectDetails();
     fetchTasks();
@@ -396,7 +400,7 @@ function ProjectDetails() {
           </div>
         </div>
       )}
-
+      {/* Note Modal */}
       {showNoteModal && (
   <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
     <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg border border-gray-200">
