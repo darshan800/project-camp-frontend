@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -10,8 +11,22 @@ function App() {
      
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/projects" element={<Projects />} />
-      <Route path="/projects/:projectId" element={<ProjectDetails />} />
+        <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <Projects />
+          </ProtectedRoute>
+        }
+      />
+       <Route
+        path="/projects/:projectId"
+        element={
+          <ProtectedRoute>
+            <ProjectDetails />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
