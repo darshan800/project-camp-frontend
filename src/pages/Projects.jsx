@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom"; 
+import ConfirmModal from "../components/ConfirmModal";
 function Projects() {
    const navigate = useNavigate();
   const { user,setUser } = useAuth();
@@ -11,6 +12,7 @@ function Projects() {
   const [showModal, setShowModal] = useState(false);
   const [newProject, setNewProject] = useState({ name: "", description: "" });
   const [creating, setCreating] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
   useEffect(() => {
     fetchProjects();
@@ -54,6 +56,23 @@ function Projects() {
     setUser(null);
     navigate("/login");
   }
+};
+
+ const handleDeleteProject = async (projectId) => {
+  setConfirmModal({
+    show: true,
+    message: "This will permanently delete the project and all its data.",
+    onConfirm: async () => {
+      try {
+        await api.delete(`/projects/${projectId}`);
+        fetchProjects();
+      } catch (err) {
+        console.error("Failed to delete project", err);
+      } finally {
+        setConfirmModal({ show: false, message: "", onConfirm: null });
+      }
+    },
+  });
 };
 
   if (loading) {
@@ -106,27 +125,42 @@ function Projects() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
          {projects.map((item) => (
-  <div
+         <div
     key={item.projects._id}
-    onClick={() => navigate(`/projects/${item.projects._id}`)}
-    className="bg-white rounded-lg p-6 cursor-pointer border border-gray-200 hover:border-blue-500 transition-all"
+    className="bg-white rounded-lg p-6 border border-gray-200 hover:border-blue-500 transition-all relative"  // add relative, remove onClick
   >
-    <h2 className="text-gray-900 font-semibold text-lg mb-2">
-      {item.projects.name}
-    </h2>
-    <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-      {item.projects.description}
-    </p>
-    <div className="flex items-center justify-between">
-      <span className="text-gray-500 text-xs">
-        {item.projects.memberCount} members
-      </span>
-      <span className="text-gray-500 text-xs font-semibold uppercase">
-        {item.role}
-      </span>
+    {/* Clickable area for navigation */}
+    <div
+      onClick={() => navigate(`/projects/${item.projects._id}`)}
+      className="cursor-pointer"
+    >
+      <h2 className="text-gray-900 font-semibold text-lg mb-2">
+        {item.projects.name}
+      </h2>
+      <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+        {item.projects.description}
+      </p>
+      <div className="flex items-center justify-between">
+        <span className="text-gray-500 text-xs">
+          {item.projects.memberCount} members
+        </span>
+        <span className="text-gray-500 text-xs font-semibold uppercase">
+          {item.role}
+        </span>
+      </div>
     </div>
-  </div>
-))}
+
+    {/* Delete button outside clickable area */}
+    {item.role === "admin" && (
+      <button
+        onClick={() => handleDeleteProject(item.projects._id)}
+        className="absolute top-4 right-4 text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+      >
+        Delete
+      </button>
+    )}
+      </div>
+    ))}
         </div>
       )}
 
@@ -191,6 +225,14 @@ function Projects() {
           </div>
         </div>
       )}
+
+      {confirmModal.show && (
+  <ConfirmModal
+    message={confirmModal.message}
+    onConfirm={confirmModal.onConfirm}
+    onCancel={() => setConfirmModal({ show: false, message: "", onConfirm: null })}
+  />
+)}
     </div>
   );
 }

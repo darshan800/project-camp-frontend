@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import ConfirmModal from "../components/ConfirmModal";
 
 
 function ProjectDetails() {
@@ -32,6 +33,7 @@ function ProjectDetails() {
     const [showNoteModal, setShowNoteModal] = useState(false);
     const [newNote, setNewNote] = useState({ content: "" });
     const [creatingNote, setCreatingNote] = useState(false);
+    const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
 
     
 
@@ -147,6 +149,40 @@ function ProjectDetails() {
   }
 };
 
+ const handleDeleteTask = async (taskId) => {
+  setConfirmModal({
+    show: true,
+    message: "This will permanently delete the task.",
+    onConfirm: async () => {
+      try {
+        await api.delete(`/tasks/${projectId}/t/${taskId}`);
+        fetchTasks();
+      } catch (err) {
+        console.error("Failed to delete task", err);
+      } finally {
+        setConfirmModal({ show: false, message: "", onConfirm: null });
+      }
+    },
+  });
+};
+
+const handleDeleteNote = async (noteId) => {
+  setConfirmModal({
+    show: true,
+    message: "This will permanently delete the note.",
+    onConfirm: async () => {
+      try {
+        await api.delete(`/notes/${projectId}/n/${noteId}`);
+        fetchNotes();
+      } catch (err) {
+        console.error("Failed to delete note", err);
+      } finally {
+        setConfirmModal({ show: false, message: "", onConfirm: null });
+      }
+    },
+  });
+};
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -225,6 +261,14 @@ function ProjectDetails() {
                 <option value="in_progress">In Progress</option>
                 <option value="done">Done</option>
               </select>
+               {(currentUserRole === "admin" || currentUserRole === "project_admin") && (
+          <button
+            onClick={() => handleDeleteTask(task._id)}
+            className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            Delete
+          </button>
+        )}
             </div>
             <p className="text-gray-500 text-sm mt-1">{task.description}</p>
             <span className={`text-xs mt-2 inline-block px-2 py-1 rounded-full ${
@@ -298,17 +342,27 @@ function ProjectDetails() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {notes.map((note) => (
-                <div
-                  key={note._id}
-                  className="bg-white rounded-lg p-4 border border-gray-200"
-                >
-                  <p className="text-gray-900">{note.content}</p>
-                  <p className="text-gray-400 text-xs mt-2">
-                    By {note.createdBy?.username} • {new Date(note.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
+             {notes.map((note) => (
+  <div
+    key={note._id}
+    className="bg-white rounded-lg p-4 border border-gray-200"
+  >
+    <div className="flex items-start justify-between">
+      <p className="text-gray-900">{note.content}</p>
+      {currentUserRole === "admin" && (
+        <button
+          onClick={() => handleDeleteNote(note._id)}
+          className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors ml-4 shrink-0"
+        >
+          Delete
+        </button>
+      )}
+    </div>
+    <p className="text-gray-400 text-xs mt-2">
+      By {note.createdBy?.username} • {new Date(note.createdAt).toLocaleDateString()}
+    </p>
+  </div>
+))}
             </div>
           )}
         </div>
@@ -458,7 +512,15 @@ function ProjectDetails() {
       </div>
     </div>
   </div>
-)}
+  )}
+
+    {confirmModal.show && (
+  <ConfirmModal
+    message={confirmModal.message}
+    onConfirm={confirmModal.onConfirm}
+    onCancel={() => setConfirmModal({ show: false, message: "", onConfirm: null })}
+  />
+    )}
     </div>
   );
 }
