@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 function Register() {
+  const { isDark } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,11 +30,13 @@ function Register() {
 
   if (success) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="bg-white border border-gray-200 p-8 rounded-xl w-full max-w-md shadow-sm text-center">
+      <div className={`flex items-center justify-center min-h-screen ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+        <div className={`border p-8 rounded-xl w-full max-w-md shadow-sm text-center ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
           <div className="text-4xl mb-4">📧</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email!</h1>
-          <p className="text-gray-500 text-sm mb-6">
+          <h1 className={`text-2xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+            Check your email!
+          </h1>
+          <p className={`text-sm mb-6 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
             We sent a verification link to <strong>{email}</strong>. Please verify your email before logging in.
           </p>
           <button
@@ -47,11 +51,15 @@ function Register() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="bg-white border border-gray-200 p-8 rounded-xl w-full max-w-md shadow-sm">
+    <div className={`flex items-center justify-center min-h-screen ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
+      <div className={`border p-8 rounded-xl w-full max-w-md shadow-sm ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">🏕️ Project Camp</h1>
-          <p className="text-gray-500 mt-1 text-sm">Create your account</p>
+          <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+            🏕️ Project Camp
+          </h1>
+          <p className={`mt-1 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            Create your account
+          </p>
         </div>
 
         {error && (
@@ -62,7 +70,7 @@ function Register() {
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-gray-700 text-sm font-medium mb-1 block">
+            <label className={`text-sm font-medium mb-1 block ${isDark ? "text-gray-300" : "text-gray-700"}`}>
               Username
             </label>
             <input
@@ -70,12 +78,12 @@ function Register() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
-              className="w-full border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm"
+              className={`w-full border rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "border-gray-200 text-gray-900"}`}
             />
           </div>
 
           <div>
-            <label className="text-gray-700 text-sm font-medium mb-1 block">
+            <label className={`text-sm font-medium mb-1 block ${isDark ? "text-gray-300" : "text-gray-700"}`}>
               Email
             </label>
             <input
@@ -83,12 +91,12 @@ function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm"
+              className={`w-full border rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "border-gray-200 text-gray-900"}`}
             />
           </div>
 
           <div>
-            <label className="text-gray-700 text-sm font-medium mb-1 block">
+            <label className={`text-sm font-medium mb-1 block ${isDark ? "text-gray-300" : "text-gray-700"}`}>
               Password
             </label>
             <input
@@ -96,7 +104,7 @@ function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full border border-gray-200 text-gray-900 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm"
+              className={`w-full border rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "border-gray-200 text-gray-900"}`}
             />
           </div>
 
@@ -109,9 +117,9 @@ function Register() {
           </button>
         </div>
 
-        <p className="text-gray-500 text-sm mt-6 text-center">
+        <p className={`text-sm mt-6 text-center ${isDark ? "text-gray-400" : "text-gray-500"}`}>
           Already have an account?{" "}
-          <Link to="/login" className="text-gray-900 font-semibold hover:underline">
+          <Link to="/login" className={`font-semibold hover:underline ${isDark ? "text-white" : "text-gray-900"}`}>
             Login
           </Link>
         </p>

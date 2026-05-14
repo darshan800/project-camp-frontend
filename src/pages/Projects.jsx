@@ -1,18 +1,23 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
+
 function Projects() {
-   const navigate = useNavigate();
-  const { user,setUser } = useAuth();
+  const navigate = useNavigate();
+  const { user, setUser, isDark, toggleTheme } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [newProject, setNewProject] = useState({ name: "", description: "" });
   const [creating, setCreating] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({ show: false, message: "", onConfirm: null });
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    message: "",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     fetchProjects();
@@ -21,7 +26,6 @@ function Projects() {
   const fetchProjects = async () => {
     try {
       const response = await api.get("/projects");
-      console.log(response.data);
       setProjects(response.data.data);
     } catch (err) {
       setError("Failed to fetch projects");
@@ -37,7 +41,7 @@ function Projects() {
       await api.post("/projects", newProject);
       setShowModal(false);
       setNewProject({ name: "", description: "" });
-      fetchProjects(); // refresh the list
+      fetchProjects();
     } catch (err) {
       setError("Failed to create project");
     } finally {
@@ -45,35 +49,34 @@ function Projects() {
     }
   };
 
-  // Optional: Add a logout button in the header
   const handleLogout = async () => {
-  try {
-    await api.post("/auth/logout");
-  } catch (err) {
-    console.error("Logout failed", err);
-  } finally {
-    localStorage.removeItem("accessToken");
-    setUser(null);
-    navigate("/login");
-  }
-};
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout failed", err);
+    } finally {
+      localStorage.removeItem("accessToken");
+      setUser(null);
+      navigate("/login");
+    }
+  };
 
- const handleDeleteProject = async (projectId) => {
-  setConfirmModal({
-    show: true,
-    message: "This will permanently delete the project and all its data.",
-    onConfirm: async () => {
-      try {
-        await api.delete(`/projects/${projectId}`);
-        fetchProjects();
-      } catch (err) {
-        console.error("Failed to delete project", err);
-      } finally {
-        setConfirmModal({ show: false, message: "", onConfirm: null });
-      }
-    },
-  });
-};
+  const handleDeleteProject = async (projectId) => {
+    setConfirmModal({
+      show: true,
+      message: "This will permanently delete the project and all its data.",
+      onConfirm: async () => {
+        try {
+          await api.delete(`/projects/${projectId}`);
+          fetchProjects();
+        } catch (err) {
+          console.error("Failed to delete project", err);
+        } finally {
+          setConfirmModal({ show: false, message: "", onConfirm: null });
+        }
+      },
+    });
+  };
 
   if (loading) {
     return (
@@ -84,27 +87,37 @@ function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className={`min-h-screen p-8 ${isDark ? "bg-gray-900" : "bg-gray-100"}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-gray-900 text-3xl font-bold">Projects</h1>
-          <p className="text-gray-500 mt-1">Welcome back, {user?.username}!</p>
+          <h1 className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+            Projects
+          </h1>
+          <p className={`mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            Welcome back, {user?.username}!
+          </p>
         </div>
-      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="border border-gray-200 hover:bg-gray-100 text-gray-700 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+          >
+            {isDark ? "☀️" : "🌙"}
+          </button>
           <button
             onClick={handleLogout}
-            className="border border-gray-200 text-white bg-violet-900 hover:bg-violet-700  text-sm text-1xl font-bold  px-4 py-2 rounded-lg transition-colors"
+            className="border border-gray-200 text-white bg-violet-900 hover:bg-violet-700 text-sm font-bold px-4 py-2 rounded-lg transition-colors"
           >
             Logout
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-green-500 hover:bg-green-600 text-white text-sm text-1xl font-bold px-4 py-2 rounded-lg transition-colors"
+            className="bg-green-500 hover:bg-green-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
           >
             + New Project
           </button>
-      </div>
+        </div>
       </div>
 
       {/* Error */}
@@ -117,61 +130,64 @@ function Projects() {
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">No projects yet</p>
-          <p className="text-gray-600 text-sm mt-1">
+          <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            No projects yet
+          </p>
+          <p className={`text-sm mt-1 ${isDark ? "text-gray-500" : "text-gray-600"}`}>
             Create your first project to get started
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-         {projects.map((item) => (
-         <div
-    key={item.projects._id}
-    className="bg-white rounded-lg p-6 border border-gray-200 hover:border-blue-500 transition-all relative"  // add relative, remove onClick
-  >
-    {/* Clickable area for navigation */}
-    <div
-      onClick={() => navigate(`/projects/${item.projects._id}`)}
-      className="cursor-pointer"
-    >
-      <h2 className="text-gray-900 font-semibold text-lg mb-2">
-        {item.projects.name}
-      </h2>
-      <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-        {item.projects.description}
-      </p>
-      <div className="flex items-center justify-between">
-        <span className="text-gray-500 text-xs">
-          {item.projects.memberCount} members
-        </span>
-        <span className="text-gray-500 text-xs font-semibold uppercase">
-          {item.role}
-        </span>
-      </div>
-    </div>
+          {projects.map((item) => (
+            <div
+              key={item.projects._id}
+              className={`rounded-lg p-6 border transition-all relative ${
+                isDark
+                  ? "bg-gray-800 border-gray-700 hover:border-gray-500"
+                  : "bg-white border-gray-200 hover:border-blue-500"
+              }`}
+            >
+              <div
+                onClick={() => navigate(`/projects/${item.projects._id}`)}
+                className="cursor-pointer"
+              >
+                <h2 className={`font-semibold text-lg mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
+                  {item.projects.name}
+                </h2>
+                <p className={`text-sm mb-4 line-clamp-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                  {item.projects.description}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-500"}`}>
+                    {item.projects.memberCount} members
+                  </span>
+                  <span className={`text-xs font-semibold uppercase ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                    {item.role}
+                  </span>
+                </div>
+              </div>
 
-    {/* Delete button outside clickable area */}
-    {item.role === "admin" && (
-      <button
-        onClick={() => handleDeleteProject(item.projects._id)}
-        className="absolute top-4 right-4 text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
-      >
-        Delete
-      </button>
-    )}
-      </div>
-    ))}
+              {item.role === "admin" && (
+                <button
+                  onClick={() => handleDeleteProject(item.projects._id)}
+                  className="absolute top-4 right-4 text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Modal */}
+      {/* Create Project Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-gray-900 text-xl font-bold mb-4">
               Create New Project
             </h2>
-
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-gray-500 text-sm mb-1 block">
@@ -187,7 +203,6 @@ function Projects() {
                   className="w-full bg-gray-100 text-gray-900 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
               <div>
                 <label className="text-gray-500 text-sm mb-1 block">
                   Description
@@ -195,21 +210,17 @@ function Projects() {
                 <textarea
                   value={newProject.description}
                   onChange={(e) =>
-                    setNewProject({
-                      ...newProject,
-                      description: e.target.value,
-                    })
+                    setNewProject({ ...newProject, description: e.target.value })
                   }
                   placeholder="Enter project description"
                   rows={3}
                   className="w-full bg-gray-100 text-gray-900 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
-
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-100 hover:bg-gray-600 text-gray-900 font-semibold py-3 rounded-lg transition-colors"
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -226,13 +237,16 @@ function Projects() {
         </div>
       )}
 
+      {/* Confirm Modal */}
       {confirmModal.show && (
-  <ConfirmModal
-    message={confirmModal.message}
-    onConfirm={confirmModal.onConfirm}
-    onCancel={() => setConfirmModal({ show: false, message: "", onConfirm: null })}
-  />
-)}
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() =>
+            setConfirmModal({ show: false, message: "", onConfirm: null })
+          }
+        />
+      )}
     </div>
   );
 }
