@@ -138,6 +138,15 @@ function ProjectDetails() {
   }
 };
 
+  const handleUpdateTaskStatus = async (taskId, status) => {
+  try {
+    await api.put(`/tasks/${projectId}/t/${taskId}`, { status });
+    fetchTasks();
+  } catch (err) {
+    console.error("Failed to update task status", err);
+  }
+};
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -200,24 +209,35 @@ function ProjectDetails() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {tasks.map((task) => (
-                <div
-                  key={task._id}
-                  className="bg-white rounded-lg p-4 border border-gray-200"
-                >
-                  <h3 className="text-gray-900 font-semibold">{task.title}</h3>
-                  <p className="text-gray-500 text-sm mt-1">{task.description}</p>
-                  <span className={`text-xs mt-2 inline-block px-2 py-1 rounded-full ${
-                    task.status === "done"
-                      ? "bg-green-500/20 text-green-600"
-                      : task.status === "in_progress"
-                      ? "bg-yellow-500/20 text-yellow-600"
-                      : "bg-gray-500/20 text-gray-500"
-                  }`}>
-                    {task.status}
-                  </span>
-                </div>
-              ))}
+                    {tasks.map((task) => (
+          <div
+            key={task._id}
+            className="bg-white rounded-lg p-4 border border-gray-200"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-gray-900 font-semibold">{task.title}</h3>
+              <select
+                value={task.status}
+                onChange={(e) => handleUpdateTaskStatus(task._id, e.target.value)}
+                className="text-xs border border-gray-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-gray-900"
+              >
+                <option value="todo">Todo</option>
+                <option value="in_progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+            <p className="text-gray-500 text-sm mt-1">{task.description}</p>
+            <span className={`text-xs mt-2 inline-block px-2 py-1 rounded-full ${
+              task.status === "done"
+                ? "bg-green-500/20 text-green-600"
+                : task.status === "in_progress"
+                ? "bg-yellow-500/20 text-yellow-600"
+                : "bg-gray-500/20 text-gray-500"
+            }`}>
+              {task.status}
+            </span>
+          </div>
+        ))}
             </div>
           )}
         </div>
