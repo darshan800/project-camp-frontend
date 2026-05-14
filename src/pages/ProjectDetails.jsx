@@ -13,7 +13,7 @@ function ProjectDetails() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("tasks");
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", description: "" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", assignedTo: "" });
   const [creating, setCreating] = useState(false);
   const [members, setMembers] = useState([]);
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -77,6 +77,7 @@ function ProjectDetails() {
 
   const handleCreateTask = async () => {
     if (!newTask.title.trim()) return;
+     if (!newTask.assignedTo) return; // make sure assignee is selected
     setCreating(true);
     try {
       await api.post(`/tasks/${projectId}`, {
@@ -169,6 +170,23 @@ function ProjectDetails() {
     });
   };
 
+ const handleDeleteMember = async (userId) => {
+  setConfirmModal({
+    show: true,
+    message: "Are you sure you want to remove this member?",
+    onConfirm: async () => {
+      try {
+        console.log(`Deleting: /projects/${projectId}/members/${userId}`); // add this
+        await api.delete(`/projects/${projectId}/members/${userId}`);
+        fetchMembers();
+      } catch (err) {
+        console.error("Failed to remove member", err);
+      } finally {
+        setConfirmModal({ show: false, message: "", onConfirm: null });
+      }
+    },
+  });
+};
   if (loading) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
@@ -299,24 +317,34 @@ function ProjectDetails() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {members.map((member) => (
-              <div
-                key={member.user._id}
-                className={`rounded-lg p-4 border flex items-center justify-between ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                  {members.map((member) => (
+        <div
+          key={member.user._id}
+          className={`rounded-lg p-4 border flex items-center justify-between ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+        >
+          <div>
+            <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+              {member.user.username}
+            </p>
+            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+              {member.user.email}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-semibold uppercase px-3 py-1 rounded-full ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
+              {member.role}
+            </span>
+            {currentUserRole === "admin" && member.user._id !== user?._id && (
+              <button
+                onClick={() => handleDeleteMember(member.user._id)}
+                className="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
               >
-                <div>
-                  <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                    {member.user.username}
-                  </p>
-                  <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                    {member.user.email}
-                  </p>
-                </div>
-                <span className={`text-xs font-semibold uppercase px-3 py-1 rounded-full ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
-                  {member.role}
-                </span>
-              </div>
-            ))}
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
           </div>
         </div>
       )}
@@ -400,6 +428,23 @@ function ProjectDetails() {
                   className={`w-full border rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm resize-none ${isDark ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "border-gray-200 text-gray-900"}`}
                 />
               </div>
+              <div>
+  <label className={`text-sm font-medium mb-1 block ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+    Assign To
+  </label>
+  <select
+    value={newTask.assignedTo}
+    onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+    className={`w-full border rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 text-sm ${isDark ? "bg-gray-700 border-gray-600 text-white" : "border-gray-200 text-gray-900"}`}
+  >
+    <option value="">Select a member</option>
+    {members.map((member) => (
+      <option key={member.user._id} value={member.user._id}>
+        {member.user.username}
+      </option>
+    ))}
+  </select>
+</div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowTaskModal(false)}
