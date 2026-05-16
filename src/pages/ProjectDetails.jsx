@@ -76,23 +76,33 @@ function ProjectDetails() {
   )?.role;
 
   const handleCreateTask = async () => {
-    if (!newTask.title.trim()) return;
-     if (!newTask.assignedTo) return; // make sure assignee is selected
-    setCreating(true);
-    try {
-      await api.post(`/tasks/${projectId}`, {
-        ...newTask,
-        assignedTo: user._id,
-      });
-      setShowTaskModal(false);
-      setNewTask({ title: "", description: "" });
-      fetchTasks();
-    } catch (err) {
-      console.error("Failed to create task", err);
-    } finally {
-      setCreating(false);
-    }
-  };
+  if (!newTask.title.trim()) return;
+  if (!newTask.assignedTo) return;
+
+  console.log("assignedTo being sent:", newTask.assignedTo);
+
+  setCreating(true);
+
+  try {
+    await api.post(`/tasks/${projectId}`, {
+      ...newTask,
+    });
+
+    setShowTaskModal(false);
+
+    setNewTask({
+      title: "",
+      description: "",
+      assignedTo: "",
+    });
+
+    fetchTasks();
+  } catch (err) {
+    console.error("Failed to create task", err);
+  } finally {
+    setCreating(false);
+  }
+};
 
   const handleAddMember = async () => {
     if (!memberEmail.trim()) return;
