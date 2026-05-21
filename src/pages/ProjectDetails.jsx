@@ -254,6 +254,8 @@ function ProjectDetails() {
               >
                 + Add Task
               </button>
+
+              
             )}
           </div>
 
@@ -264,6 +266,7 @@ function ProjectDetails() {
           ) : (
             <div className="flex flex-col gap-3">
               {tasks.map((task) => (
+                console.log(task),
                 <div
                   key={task._id}
                   className={`rounded-lg p-4 border ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
@@ -295,6 +298,36 @@ function ProjectDetails() {
                   <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                     {task.description}
                   </p>
+                                  <div className="mt-4 space-y-2">
+                  {task.subtasks?.map((subtask) => (
+                    <div
+                      key={subtask._id}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={subtask.isCompleted}
+                        readOnly
+                      />
+
+                      <p
+                        className={`text-sm ${
+                          subtask.isCompleted
+                            ? "line-through text-gray-400"
+                            : ""
+                        }`}
+                      >
+                        {subtask.title}
+                      </p>
+                    </div>
+                  ))}
+
+                    <button
+   className="bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+  >
+    + Add Subtask
+  </button>
+                </div>
                   <span className={`text-xs mt-2 inline-block px-2 py-1 rounded-full ${
                     task.status === "done"
                       ? "bg-green-500/20 text-green-600"
